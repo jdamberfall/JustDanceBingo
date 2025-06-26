@@ -12,141 +12,798 @@
             font-family: 'Inter', sans-serif;
             background-color: #1a202c; /* Deep charcoal background */
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column; /* Stack main content (bingo card) vertically */
+            justify-content: flex-start; /* Align content to the top */
+            align-items: center; /* Center content horizontally */
             min-height: 100vh; /* Full viewport height */
             margin: 0;
-            padding: 1rem; /* Some padding around the card */
+            padding: 1rem; /* Base padding */
+            padding-bottom: 5rem; /* Space for fixed bottom slider */
+            padding-right: 180px; /* Space for fixed right marker area */
             box-sizing: border-box; /* Include padding in element's total width and height */
+            user-select: none; /* Prevent accidental text selection for better interaction */
+            position: relative; /* For z-index context */
+        }
+
+        /* Slider container styling - Fixed to bottom */
+        .slider-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%; /* Full width */
+            padding: 0.75rem 1rem; /* Adjusted padding */
+            background-color: #2d3748; /* Darker background */
+            border-radius: 0; /* No rounded corners for fixed bar */
+            box-shadow: 0 -5px 15px -3px rgba(0, 0, 0, 0.3); /* Shadow on top */
+            z-index: 100; /* Ensure it's on top */
+            display: flex;
+            flex-direction: row; /* Label and slider side-by-side */
+            justify-content: center; /* Center content within the bar */
+            align-items: center;
+            gap: 1rem; /* Space between label and slider */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .slider-label {
+            color: #e2e8f0; /* Light text color */
+            font-size: 1rem;
+            margin-bottom: 0; /* Remove previous margin */
+            font-weight: bold;
+            white-space: nowrap; /* Prevent label from wrapping */
+        }
+
+        .font-size-slider {
+            -webkit-appearance: none; /* Override default look */
+            appearance: none;
+            width: 60%; /* Adjusted width for fixed bar */
+            max-width: 400px; /* Limit slider width */
+            height: 0.5rem; /* Height of the slider track */
+            background: #4a5568; /* Darker track color */
+            outline: none; /* Remove outline */
+            opacity: 0.7; /* Opacity for styling */
+            -webkit-transition: .2s; /* Transition on hover */
+            transition: opacity .2s;
+            border-radius: 0.25rem;
+        }
+
+        .font-size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; /* Override default look */
+            appearance: none;
+            width: 1.25rem; /* Size of the slider handle */
+            height: 1.25rem; /* Size of the slider handle */
+            background: #667eea; /* Blue handle color */
+            cursor: pointer;
+            border-radius: 50%; /* Make it round */
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4); /* Subtle glow */
+        }
+
+        .font-size-slider::-moz-range-thumb {
+            width: 1.25rem; /* Size of the slider handle */
+            height: 1.25rem; /* Size of the slider handle */
+            background: #667eea; /* Blue handle color */
+            cursor: pointer;
+            border-radius: 50%; /* Make it round */
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4); /* Subtle glow */
+        }
+
+        /* Button styling */
+        .control-button {
+            background-color: #667eea; /* Blue */
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        .control-button:hover {
+            background-color: #5a6ed0;
+        }
+        .control-button:active {
+            transform: translateY(1px);
         }
 
         /* Main container for the bingo card, handles responsiveness and aspect ratio */
         .bingo-card-container {
             position: relative;
-            width: 100%;
-            max-width: 768px; /* Max width based on the original image width */
-            /* Maintain the aspect ratio of the 768x1024 image (height / width * 100%) */
-            padding-bottom: calc(1024 / 768 * 100%);
+            width: 90vw; /* Occupy 90% of viewport width for responsiveness */
+            max-width: calc(768px - 180px); /* Adjust max-width to account for marker bar */
+            
+            aspect-ratio: 768 / 614; 
+            
             border-radius: 1rem; /* Rounded corners for the entire card */
             overflow: hidden; /* Ensures background and content respect rounded corners */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* Large, subtle shadow */
-        }
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* Large, subtle shadow for depth */
+            flex-shrink: 0; /* Prevent shrinking too much */
 
-        /* The actual bingo image, positioned to cover the container */
-        .bingo-card-container img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Ensures the image covers the container while maintaining aspect ratio */
-            border-radius: 1rem; /* Apply rounded corners to the image */
+            background-image: url('https://i.imgur.com/iS7ucbh.png');
+            background-size: contain; 
+            background-repeat: no-repeat; 
+            background-position: center center; 
         }
 
         /* Overlay for the bingo grid, precisely positioned over the squares on the image */
         .bingo-grid-overlay {
             position: absolute;
-            /* These values are estimated from the provided 'bingo 26.jpg' to align the grid */
-            top: 19.5%; /* Approximate top offset from image analysis */
-            left: 9.1%; /* Approximate left offset */
-            width: 82%; /* Approximate width of the grid area */
-            height: 60.5%; /* Approximate height of the grid area */
+            top: 17.8%;    
+            left: 23.0%;   
+            width: 55.0%;  
+            height: 67.8%; 
             
             display: grid;
-            grid-template-columns: repeat(5, 1fr); /* 5 equal columns */
-            grid-template-rows: repeat(5, 1fr); /* 5 equal rows */
-            gap: 1.6%; /* Gap between squares, adjusted to match image spacing */
+            grid-template-columns: repeat(5, 1fr); 
+            grid-template-rows: repeat(5, 1fr);    
+            gap: 3.7%; 
         }
 
         /* Styling for each individual bingo square container */
         .bingo-square {
             display: flex;
-            justify-content: center; /* Center content horizontally */
-            align-items: center; /* Center content vertically */
-            border-radius: 0.5rem; /* Rounded corners for individual squares */
-            overflow: hidden; /* Ensures content within square respects rounded corners */
-            /* For debugging grid placement: background-color: rgba(255, 0, 0, 0.2); */
+            justify-content: center; 
+            align-items: center; 
+            border-radius: 0.5rem; 
+            overflow: hidden; 
+            
+            aspect-ratio: 1 / 1; 
+            position: relative; 
         }
 
         /* Styling for the editable content inside each square */
         .bingo-editable-content {
-            width: 95%; /* Take up most of the square's width */
-            min-height: 95%; /* Take up most of the square's height */
-            /* Removed background-color and border to make it fully transparent */
-            background-color: transparent; /* Ensure full transparency */
-            border: none; /* Remove any border */
-            color: white; /* White text color */
-            text-align: center; /* Center-align the text horizontally */
-            outline: none; /* Remove default focus outline */
-            padding: 0.25rem; /* Small internal padding */
-            /* Responsive font size: scales from 0.6rem to 1.4rem, with 2.5vw as preferred */
-            font-size: clamp(0.6rem, 2.5vw, 1.4rem);
-            line-height: 1.2; /* Adjust line height for readability */
-            word-break: break-word; /* Prevents long words from overflowing */
-            display: flex; /* Use flexbox for perfect vertical and horizontal centering of text */
+            width: 100%; 
+            height: 100%; 
+            box-sizing: border-box; 
+            background-color: transparent; 
+            color: white; 
+            text-align: center; 
+            outline: none; 
+            padding: 0.25rem; 
+            /* font-size will be set dynamically by JS */
+            word-break: break-word; 
+            display: flex; 
             align-items: center;
             justify-content: center;
-            border-radius: 0.375rem; /* Slightly rounded corners for the editable box itself */
+            border-radius: 0.375rem; 
+            font-family: 'Helvetica Neue', sans-serif; /* Changed font family */
+            line-height: 1.0; /* Adjusted line height for tighter spacing */
+            position: relative; /* Needed for z-index to work */
+            z-index: 1; /* Ensure it's in a lower layer than markers */
+            /* Default pointer-events, will be controlled by JS */
+            pointer-events: auto; /* Default for editable content */
         }
 
-        /* Specific styling for the 'FREE SPACE' square */
+        /* Specific styling for the 'FREE SPACE' square to make it stand out */
         .free-space-text {
-            font-weight: bold;
-            /* Blue-purple glow effect for the text */
+            font-weight: bold; 
             text-shadow: 0 0 5px rgba(100, 100, 255, 0.7), 0 0 10px rgba(150, 150, 255, 0.5);
-            /* Keep original background and border for free space, or adjust as needed */
-            background-color: rgba(255, 255, 255, 0.05); /* Slightly lighter background */
-            border: 1px solid rgba(255, 255, 255, 0.1); /* Slightly lighter border */
+            background-color: rgba(255, 255, 255, 0.05); 
+        }
+
+        /* Styles for the marker area - Fixed to right */
+        .marker-area-container {
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0; /* Extends from top to bottom */
+            width: 150px; /* Fixed width for marker area */
+            padding: 1rem;
+            background-color: #2d3748; /* Darker background */
+            border-radius: 0; /* No rounded corners for fixed bar */
+            box-shadow: -5px 0 15px -3px rgba(0, 0, 0, 0.3); /* Shadow on left */
+            z-index: 90; /* Below slider, but above main content */
+            display: flex;
+            flex-direction: column; /* Markers stacked vertically */
+            gap: 0.5rem; /* Space between markers */
+            align-items: center;
+            overflow-y: auto; /* Allow vertical scrolling if many markers */
+            justify-content: flex-start; /* Align content to the top */
+        }
+
+        /* Styles for individual bingo markers */
+        .bingo-marker {
+            width: 40px; 
+            height: 40px; 
+            background-color: rgba(255, 0, 0, 0.3); /* Semi-transparent red */
+            border-radius: 50%; 
+            cursor: grab; 
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            position: relative; /* Default position */
+            flex-shrink: 0; /* Prevent shrinking in marker area */
+            /* No text content should be present in this div */
+        }
+
+        /* Marker when it's on a bingo square */
+        .bingo-marker.on-board {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer; 
+            background-color: rgba(255, 0, 0, 0.6); /* Semi-transparent red */
+            border: none; /* Removed outline */
+            z-index: 10; /* Ensure markers are on top of other content */
+        }
+
+        /* Highlight for drop target */
+        .bingo-square.drop-target {
+            outline: 2px dashed #667eea; 
+            outline-offset: 2px;
+        }
+
+        /* Hide the dragged element itself, so only the drag image is seen */
+        .dragging {
+            opacity: 0 !important;
+        }
+
+        /* Visual for selected marker on mobile */
+        .bingo-marker.selected-for-placement {
+            border: 2px dashed #667eea; /* Blue dashed outline */
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.7); /* Subtle glow */
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 1024px) {
+            body {
+                flex-direction: column; /* Stack elements vertically */
+                padding-right: 1rem; /* Reset right padding */
+                padding-top: 5rem; /* Space for fixed top marker area */
+                padding-bottom: 5rem; /* Space for fixed bottom slider */
+            }
+
+            .slider-container {
+                /* Already fixed bottom, responsive by default for width */
+            }
+
+            .marker-area-container {
+                position: fixed; /* Keep fixed */
+                top: 0; /* Fixed to top */
+                left: 0; /* Extend full width */
+                right: 0; /* Extend full width */
+                height: 60px; /* Fixed height for top bar */
+                width: 100%; /* Take full width */
+                flex-direction: row; /* Markers aligned horizontally at top */
+                justify-content: center; /* Center markers horizontally */
+                align-items: center;
+                overflow-x: auto; /* Allow horizontal scrolling if too many markers */
+                overflow-y: hidden; /* Hide vertical scroll for horizontal layout */
+                max-height: unset; /* Remove max-height for top bar */
+                box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.3); /* Shadow on bottom */
+                border-radius: 0;
+                z-index: 95; /* Above bingo card, below slider */
+            }
+            .marker-area-container .slider-label {
+                display: none; /* Hide 'Markers' label when horizontal at top */
+            }
+        }
+
+        /* Custom message box styles */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden; /* Hidden by default */
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease;
+        }
+
+        .message-box-content {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 400px;
+            font-size: 1.1rem;
+        }
+
+        .message-box-content button {
+            background-color: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .message-box-content button:hover {
+            background-color: #5a6ed0;
+        }
+
+        .message-box-overlay.visible {
+            visibility: visible;
+            opacity: 1;
         }
     </style>
 </head>
 <body>
-    <div class="bingo-card-container">
-        <!-- The bingo card image is embedded directly using base64 data. -->
-        <!-- The `{{__uploaded_file_data_bingo_26_jpg}}` placeholder is replaced by the environment with the actual image data. -->
-        <img id="bingo-background-img" src="data:image/jpeg;base64,{{__uploaded_file_data_bingo_26_jpg}}" alt="Bingo Card Template">
+    <!-- Font size slider control -->
+    <div class="slider-container">
+        <label for="fontSizeSlider" class="slider-label">Adjust Font Size</label>
+        <input type="range" id="fontSizeSlider" class="font-size-slider" min="0.3" max="2.0" step="0.1" value="0.8">
+        <!-- New control buttons -->
+        <button id="saveChangesBtn" class="control-button">Save Changes</button>
+        <button id="clearBoardBtn" class="control-button">Clear Bingo Board</button>
+        <button id="clearMarkersBtn" class="control-button">Clear Markers</button>
+    </div>
 
+    <div class="bingo-card-container" id="bingoCardContainer">
         <div class="bingo-grid-overlay">
             <!-- Bingo squares with editable content will be dynamically inserted here by JavaScript -->
         </div>
     </div>
 
+    <!-- Container for draggable bingo markers -->
+    <div class="marker-area-container" id="markerArea">
+        <div class="slider-label">Markers</div>
+        <!-- Markers will be dynamically inserted here by JavaScript -->
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="messageBoxOverlay" class="message-box-overlay">
+        <div class="message-box-content">
+            <p id="messageBoxText"></p>
+            <button id="messageBoxCloseBtn">OK</button>
+        </div>
+    </div>
+
     <script>
-        // Define initial content for each bingo square. The 13th square (index 12) is 'FREE SPACE'.
+        // Define initial content for each bingo square. There are 25 squares in total.
         const bingoSquaresData = Array(25).fill('');
-        bingoSquaresData[12] = 'FREE SPACE'; // Set the middle square to 'FREE SPACE'
+        // Remove "FREE SPACE" text from the middle square (index 12)
+        bingoSquaresData[12] = ''; 
 
-        // Get the overlay element where bingo squares will be added
+        // Get the grid overlay element from the DOM
         const bingoGridOverlay = document.querySelector('.bingo-grid-overlay');
+        // Get the font size slider element
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        // Get the marker area container
+        const markerArea = document.getElementById('markerArea');
+        // Get the new control buttons
+        const saveChangesBtn = document.getElementById('saveChangesBtn');
+        const clearBoardBtn = document.getElementById('clearBoardBtn');
+        const clearMarkersBtn = document.getElementById('clearMarkersBtn');
 
-        // Loop through the data to create and append each bingo square
+        // Custom message box elements
+        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+        const messageBoxText = document.getElementById('messageBoxText');
+        const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
+
+        // Function to display custom message box
+        function showMessageBox(message) {
+            messageBoxText.textContent = message;
+            messageBoxOverlay.classList.add('visible');
+        }
+
+        // Close message box when OK button is clicked
+        messageBoxCloseBtn.addEventListener('click', () => {
+            messageBoxOverlay.classList.remove('visible');
+        });
+
+        // Variable to keep track of the currently focused editable square
+        let focusedSquare = null;
+        // Variable to keep track of the last edited editable square
+        let lastEditedBox = null;
+        // Variable to keep track of the currently dragged marker (for desktop)
+        let draggedMarker = null;
+        // Variable to keep track of the currently selected marker (for mobile tap-to-place)
+        let selectedMarkerForMobile = null;
+
+        const MIN_FONT_SIZE = 0.3; // Absolute minimum font size to prevent illegibility
+
+        // Array to store references to all editable content divs
+        const allEditableDivs = [];
+        // Array to store references to all marker divs
+        const allMarkers = [];
+
+        // Utility to check if currently on mobile layout
+        function isMobileLayout() {
+            return window.innerWidth <= 1024;
+        }
+
+        // Function to adjust font size to fit content within the box
+        function adjustFontSizeToFit(element) {
+            if (!element) return;
+
+            let currentFontSize = parseFloat(fontSizeSlider.value); // Start with slider's max size
+            element.style.fontSize = `${currentFontSize}rem`;
+
+            // Shrink loop
+            while ((element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth) && currentFontSize > MIN_FONT_SIZE) {
+                currentFontSize -= 0.05; // Decrease by a small step
+                if (currentFontSize < MIN_FONT_SIZE) currentFontSize = MIN_FONT_SIZE; // Cap at minimum
+                element.style.fontSize = `${currentFontSize}rem`;
+            }
+
+            // Expand loop (if text shrinks then is deleted, it should grow back)
+            // Only attempt to grow if content is smaller than the box allows at currentFontSize
+            // and currentFontSize is less than the max allowed by slider.
+            if (element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth) {
+                while (currentFontSize < parseFloat(fontSizeSlider.value) && currentFontSize < 2.0 && 
+                       element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth) {
+                    let nextFontSize = currentFontSize + 0.05;
+                    if (nextFontSize > parseFloat(fontSizeSlider.value)) nextFontSize = parseFloat(fontSizeSlider.value);
+                    if (nextFontSize > 2.0) nextFontSize = 2.0; // Hard cap maximum
+                    
+                    element.style.fontSize = `${nextFontSize}rem`;
+                    // Check if it still fits after increasing
+                    if (element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth) {
+                        element.style.fontSize = `${currentFontSize}rem`; // Revert if it overflows
+                        break;
+                    }
+                    currentFontSize = nextFontSize;
+                }
+            }
+        }
+
+        // --- Persistence Functions ---
+        function saveBingoState() {
+            const state = {
+                texts: allEditableDivs.map(div => ({
+                    index: parseInt(div.parentElement.dataset.index),
+                    content: div.textContent,
+                    fontSize: div.style.fontSize
+                })),
+                markers: allMarkers.filter(marker => marker.classList.contains('on-board')).map(marker => ({
+                    id: marker.id,
+                    squareIndex: parseInt(marker.parentElement.dataset.index)
+                }))
+            };
+            localStorage.setItem('bingoCardState', JSON.stringify(state));
+        }
+
+        function loadBingoState() {
+            const savedState = localStorage.getItem('bingoCardState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+
+                // Load text and font sizes
+                state.texts.forEach(item => {
+                    const editableDiv = allEditableDivs.find(div => parseInt(div.parentElement.dataset.index) === item.index);
+                    if (editableDiv) {
+                        editableDiv.textContent = item.content;
+                        editableDiv.style.fontSize = item.fontSize;
+                        adjustFontSizeToFit(editableDiv); // Re-adjust in case of content changes or resize
+                    }
+                });
+
+                // Clear all markers from board and move to markerArea first
+                allMarkers.forEach(marker => {
+                    if (marker.classList.contains('on-board')) {
+                        const parentSquare = marker.parentElement;
+                        if (parentSquare) {
+                            parentSquare.classList.remove('marked');
+                            const editableDiv = parentSquare.querySelector('.bingo-editable-content');
+                            if (editableDiv) {
+                                editableDiv.contentEditable = true; // Ensure editable
+                                editableDiv.style.pointerEvents = 'auto'; // Ensure pointer events are auto
+                            }
+                        }
+                        markerArea.appendChild(marker);
+                        marker.classList.remove('on-board');
+                        marker.style.position = ''; 
+                        marker.style.left = '';
+                        marker.style.top = '';
+                        marker.style.transform = '';
+                    }
+                });
+
+                // Place markers back on board based on saved state
+                state.markers.forEach(item => {
+                    const marker = document.getElementById(item.id);
+                    const targetSquare = bingoGridOverlay.querySelector(`.bingo-square[data-index="${item.squareIndex}"]`);
+                    if (marker && targetSquare && !targetSquare.classList.contains('marked')) {
+                        const editableDiv = targetSquare.querySelector('.bingo-editable-content');
+                        
+                        targetSquare.appendChild(marker); // Append marker to the square
+                        marker.classList.add('on-board');
+                        targetSquare.classList.add('marked');
+                        
+                        if (editableDiv) {
+                            editableDiv.contentEditable = false; // Disable text editing when marker is on top
+                            editableDiv.style.pointerEvents = 'none'; // Prevent interaction with text
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- Main Bingo Card Setup ---
         bingoSquaresData.forEach((content, index) => {
             const squareDiv = document.createElement('div');
             squareDiv.classList.add('bingo-square');
+            squareDiv.dataset.index = index; 
 
             const editableDiv = document.createElement('div');
             editableDiv.classList.add('bingo-editable-content');
-            editableDiv.contentEditable = true; // Makes the div content editable by the user
-            editableDiv.textContent = content; // Set the initial text content for the square
+            editableDiv.contentEditable = true; // Initially editable
+            editableDiv.textContent = content;
+            editableDiv.style.fontSize = `${parseFloat(fontSizeSlider.value)}rem`; 
+            allEditableDivs.push(editableDiv); // Store reference
 
-            // Apply specific styling for the 'FREE SPACE' square
-            if (index === 12) {
-                editableDiv.classList.add('free-space-text');
-            }
+            editableDiv.addEventListener('focus', () => {
+                focusedSquare = editableDiv;
+                lastEditedBox = editableDiv;
+                fontSizeSlider.value = parseFloat(editableDiv.style.fontSize);
+            });
 
-            squareDiv.appendChild(editableDiv); // Add the editable div to the square container
-            bingoGridOverlay.appendChild(squareDiv); // Add the square container to the grid overlay
+            editableDiv.addEventListener('blur', (event) => {
+                if (focusedSquare === editableDiv && event.relatedTarget !== fontSizeSlider) {
+                    focusedSquare = null;
+                }
+            });
+
+            editableDiv.addEventListener('input', () => {
+                lastEditedBox = editableDiv;
+                adjustFontSizeToFit(editableDiv);
+                fontSizeSlider.value = parseFloat(editableDiv.style.fontSize);
+                saveBingoState(); // Still save state silently
+            });
+
+            squareDiv.appendChild(editableDiv);
+            bingoGridOverlay.appendChild(squareDiv);
+
+            adjustFontSizeToFit(editableDiv); // Initial adjust
+
+            // Mobile: Tap to place marker
+            squareDiv.addEventListener('click', (event) => {
+                if (isMobileLayout()) {
+                    if (selectedMarkerForMobile) {
+                        event.preventDefault(); // Prevent text editing if a marker is being placed
+                        handleMobileMarkerPlacement(selectedMarkerForMobile, squareDiv);
+                    } else if (squareDiv.classList.contains('marked')) {
+                        // If square is marked, tapping it should remove the marker
+                        const markerOnSquare = squareDiv.querySelector('.bingo-marker.on-board');
+                        if (markerOnSquare) {
+                            markerOnSquare.click(); // Trigger the marker's own click handler to remove it
+                        }
+                    }
+                }
+            });
         });
 
-        // Add an event listener to clear square content on double click
-        bingoGridOverlay.addEventListener('dblclick', (event) => {
-            // Find the closest editable content div that was double-clicked
-            const target = event.target.closest('.bingo-editable-content');
-            // Ensure it's an editable element and not the 'FREE SPACE'
-            if (target && target.contentEditable === 'true' && target.textContent.trim() !== 'FREE SPACE') {
-                target.textContent = ''; // Clear the content
+        // --- Slider and Control Button Event Listeners ---
+        fontSizeSlider.addEventListener('input', () => {
+            updateMaxFontSizeAndAdjust();
+            saveBingoState(); // Still save state silently after font size adjustment
+        });
+
+        saveChangesBtn.addEventListener('click', () => {
+            saveBingoState();
+            showMessageBox('Changes Saved!'); // Only show message when button is clicked
+        });
+
+        clearBoardBtn.addEventListener('click', () => {
+            allEditableDivs.forEach((div, index) => {
+                if (index !== 12) { // Don't clear free space text if it was originally there
+                    div.textContent = '';
+                    adjustFontSizeToFit(div);
+                }
+            });
+            saveBingoState(); 
+            showMessageBox('Bingo Board Cleared!');
+        });
+
+        clearMarkersBtn.addEventListener('click', () => {
+            allMarkers.forEach(marker => {
+                if (marker.classList.contains('on-board')) {
+                    const parentSquare = marker.parentElement;
+                    if (parentSquare) {
+                        parentSquare.classList.remove('marked');
+                        const editableDiv = parentSquare.querySelector('.bingo-editable-content');
+                        if (editableDiv) {
+                            editableDiv.contentEditable = true; // Re-enable text editing
+                            editableDiv.style.pointerEvents = 'auto'; // Re-enable pointer events for text
+                        }
+                    }
+                    markerArea.appendChild(marker);
+                    marker.classList.remove('on-board');
+                    marker.style.position = ''; 
+                    marker.style.left = '';
+                    marker.style.top = '';
+                    marker.style.transform = '';
+                }
+            });
+            saveBingoState(); 
+            showMessageBox('Markers Cleared!');
+            if (selectedMarkerForMobile) { // Also clear mobile selection
+                selectedMarkerForMobile.classList.remove('selected-for-placement');
+                selectedMarkerForMobile = null;
             }
         });
+
+
+        // --- Marker Generation and Drag/Drop Setup ---
+        for (let i = 0; i < 25; i++) {
+            const marker = document.createElement('div');
+            marker.classList.add('bingo-marker');
+            marker.id = `marker-${i}`;
+            marker.draggable = true;
+            marker.textContent = ''; // Explicitly ensure no text content in the marker div
+            allMarkers.push(marker); // Store reference
+
+            // Mobile: Tap to select marker
+            marker.addEventListener('click', (event) => {
+                if (isMobileLayout()) {
+                    event.stopPropagation(); // Prevent square click if marker is clicked
+                    if (marker.classList.contains('on-board')) {
+                        // If marker is on board, tap to remove
+                        handleMobileMarkerRemoval(marker);
+                    } else {
+                        // If marker in area, tap to select
+                        if (selectedMarkerForMobile) {
+                            selectedMarkerForMobile.classList.remove('selected-for-placement'); // Deselect previous
+                        }
+                        selectedMarkerForMobile = marker;
+                        marker.classList.add('selected-for-placement'); // Select current
+                    }
+                }
+            });
+
+
+            // Desktop: Drag and Drop (only enabled on larger screens)
+            marker.addEventListener('dragstart', (event) => {
+                if (!isMobileLayout()) {
+                    draggedMarker = marker;
+                    event.dataTransfer.setData('text/plain', marker.id);
+                    setTimeout(() => {
+                        marker.classList.add('dragging'); 
+                    }, 0);
+                } else {
+                    event.preventDefault(); // Prevent native drag on mobile if tap handling it
+                }
+            });
+
+            marker.addEventListener('dragend', () => {
+                if (!isMobileLayout()) {
+                    if (draggedMarker && draggedMarker.classList.contains('dragging')) {
+                        draggedMarker.classList.remove('dragging');
+                    }
+                    draggedMarker = null;
+                    saveBingoState();
+                }
+            });
+
+            markerArea.appendChild(marker);
+        }
+
+        // Global drop handler for desktop (must be outside the loop)
+        document.addEventListener('drop', (event) => {
+            if (!isMobileLayout()) {
+                const droppedOnSquare = event.target.closest('.bingo-square');
+                if (draggedMarker) {
+                    handleDesktopMarkerDrop(event, droppedOnSquare);
+                }
+            }
+        });
+
+        document.addEventListener('dragover', (event) => {
+            if (!isMobileLayout()) {
+                event.preventDefault();
+            }
+        });
+
+        // Helper functions for mobile marker logic
+        function handleMobileMarkerPlacement(markerToPlace, targetSquare) {
+            if (markerToPlace && targetSquare && !targetSquare.classList.contains('marked')) {
+                const editableDiv = targetSquare.querySelector('.bingo-editable-content');
+
+                // Clear existing marker on target square if any (shouldn't be due to !marked)
+                const existingMarkerOnTarget = targetSquare.querySelector('.bingo-marker.on-board');
+                if (existingMarkerOnTarget && existingMarkerOnTarget !== markerToPlace) {
+                     handleMobileMarkerRemoval(existingMarkerOnTarget); // Remove old one
+                }
+
+                targetSquare.appendChild(markerToPlace);
+                markerToPlace.classList.add('on-board');
+                targetSquare.classList.add('marked');
+
+                if (editableDiv) {
+                    editableDiv.contentEditable = false;
+                    editableDiv.style.pointerEvents = 'none';
+                }
+                markerToPlace.classList.remove('selected-for-placement'); // Remove selection visual
+                selectedMarkerForMobile = null; // Clear selected marker
+                saveBingoState();
+            } else if (markerToPlace) { // Square is already marked, or invalid target for placement
+                markerToPlace.classList.remove('selected-for-placement'); // Deselect
+                selectedMarkerForMobile = null; // Clear selection
+            }
+        }
+
+        function handleMobileMarkerRemoval(markerToRemove) {
+            const parentSquare = markerToRemove.parentElement;
+            if (parentSquare) {
+                parentSquare.classList.remove('marked');
+                const editableDiv = parentSquare.querySelector('.bingo-editable-content');
+                if (editableDiv) {
+                    editableDiv.contentEditable = true;
+                    editableDiv.style.pointerEvents = 'auto';
+                }
+            }
+            markerArea.appendChild(markerToRemove);
+            markerToRemove.classList.remove('on-board');
+            markerToRemove.style.position = ''; // Clear inline styles
+            markerToRemove.style.left = '';
+            markerToRemove.style.top = '';
+            markerToRemove.style.transform = '';
+            saveBingoState();
+        }
+
+        // Helper for desktop marker drop logic
+        function handleDesktopMarkerDrop(event, targetSquare) {
+            const markerId = event.dataTransfer.getData('text/plain');
+            const marker = document.getElementById(markerId);
+
+            if (marker) { // Check if a marker was actually being dragged
+                if (!targetSquare) { // Dropped outside a valid square
+                    markerArea.appendChild(marker); // Return to marker area
+                    marker.classList.remove('on-board'); // Ensure it's not marked as on-board
+                    marker.style.position = ''; // Clear inline styles
+                    marker.style.left = '';
+                    marker.style.top = '';
+                    marker.style.transform = '';
+                } else if (!targetSquare.classList.contains('marked')) { // Dropped on an unmarked square
+                    const editableDiv = targetSquare.querySelector('.bingo-editable-content');
+
+                    const existingMarkerOnTarget = targetSquare.querySelector('.bingo-marker.on-board');
+                    if (existingMarkerOnTarget && existingMarkerOnTarget !== marker) {
+                        existingMarkerOnTarget.classList.remove('on-board');
+                        markerArea.appendChild(existingMarkerOnTarget);
+                        const oldEditableDiv = existingMarkerOnTarget.parentElement.querySelector('.bingo-editable-content');
+                        if (oldEditableDiv) {
+                            oldEditableDiv.contentEditable = true;
+                            oldEditableDiv.style.pointerEvents = 'auto';
+                        }
+                        existingMarkerOnTarget.parentElement.classList.remove('marked');
+                    }
+
+                    targetSquare.appendChild(marker);
+                    marker.classList.add('on-board');
+                    targetSquare.classList.add('marked');
+
+                    if (editableDiv) {
+                        editableDiv.contentEditable = false;
+                        editableDiv.style.pointerEvents = 'none';
+                    }
+                } else { // Dropped on an already marked square
+                    markerArea.appendChild(marker); // Return dragged marker to marker area
+                    marker.classList.remove('on-board'); // Ensure it's not on-board
+                    marker.style.position = ''; // Clear inline styles
+                    marker.style.left = '';
+                    marker.style.top = '';
+                    marker.style.transform = '';
+                }
+                marker.classList.remove('dragging'); // Always remove dragging class after drop attempt
+                draggedMarker = null; // Clear dragged marker reference
+                saveBingoState();
+            }
+        }
+
+        // Initial load of bingo state when everything is set up
+        loadBingoState(); 
+
+        // Function to update font size based on slider (now sets max allowed font size)
+        function updateMaxFontSizeAndAdjust() {
+            const maxFontSize = parseFloat(fontSizeSlider.value); 
+
+            if (focusedSquare) {
+                adjustFontSizeToFit(focusedSquare);
+            } else if (lastEditedBox) {
+                adjustFontSizeToFit(lastEditedBox);
+            }
+        }
     </script>
 </body>
 </html>
