@@ -359,126 +359,265 @@
     </div>
 
     <script>
-        // Define initial content for each bingo square. There are 25 squares in total.
-        const bingoSquaresData = Array(25).fill('');
-        // Remove "FREE SPACE" text from the middle square (index 12)
-        bingoSquaresData[12] = ''; 
+        // Wrap everything in a DOMContentLoaded listener for robustness
+        document.addEventListener('DOMContentLoaded', () => {
+            // Define initial content for each bingo square. There are 25 squares in total.
+            const bingoSquaresData = Array(25).fill('');
+            // Remove "FREE SPACE" text from the middle square (index 12)
+            bingoSquaresData[12] = ''; 
 
-        // Get the grid overlay element from the DOM
-        const bingoGridOverlay = document.querySelector('.bingo-grid-overlay');
-        // Get the font size slider element
-        const fontSizeSlider = document.getElementById('fontSizeSlider');
-        // Get the marker area container
-        const markerArea = document.getElementById('markerArea');
-        // Get the new control buttons
-        const saveChangesBtn = document.getElementById('saveChangesBtn');
-        const clearBoardBtn = document.getElementById('clearBoardBtn');
-        const clearMarkersBtn = document.getElementById('clearMarkersBtn');
+            // Get the grid overlay element from the DOM
+            const bingoGridOverlay = document.querySelector('.bingo-grid-overlay');
+            // Get the font size slider element
+            const fontSizeSlider = document.getElementById('fontSizeSlider');
+            // Get the marker area container
+            const markerArea = document.getElementById('markerArea');
+            // Get the new control buttons
+            const saveChangesBtn = document.getElementById('saveChangesBtn');
+            const clearBoardBtn = document.getElementById('clearBoardBtn');
+            const clearMarkersBtn = document.getElementById('clearMarkersBtn');
 
-        // Custom message box elements
-        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
-        const messageBoxText = document.getElementById('messageBoxText');
-        const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
+            // Custom message box elements
+            const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+            const messageBoxText = document.getElementById('messageBoxText');
+            const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
 
-        // Function to display custom message box
-        function showMessageBox(message) {
-            messageBoxText.textContent = message;
-            messageBoxOverlay.classList.add('visible');
-        }
-
-        // Close message box when OK button is clicked
-        messageBoxCloseBtn.addEventListener('click', () => {
-            messageBoxOverlay.classList.remove('visible');
-        });
-
-        // Variable to keep track of the currently focused editable square
-        let focusedSquare = null;
-        // Variable to keep track of the last edited editable square
-        let lastEditedBox = null;
-        // Variable to keep track of the currently dragged marker (for desktop)
-        let draggedMarker = null;
-        // Variable to keep track of the currently selected marker (for mobile tap-to-place)
-        let selectedMarkerForMobile = null;
-
-        const MIN_FONT_SIZE = 0.3; // Absolute minimum font size to prevent illegibility
-
-        // Array to store references to all editable content divs
-        const allEditableDivs = [];
-        // Array to store references to all marker divs
-        const allMarkers = [];
-
-        // Utility to check if currently on mobile layout
-        function isMobileLayout() {
-            return window.innerWidth <= 1024;
-        }
-
-        // Function to adjust font size to fit content within the box
-        function adjustFontSizeToFit(element) {
-            if (!element) return;
-
-            let currentFontSize = parseFloat(fontSizeSlider.value); // Start with slider's max size
-            element.style.fontSize = `${currentFontSize}rem`;
-
-            // Shrink loop
-            while ((element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth) && currentFontSize > MIN_FONT_SIZE) {
-                currentFontSize -= 0.05; // Decrease by a small step
-                if (currentFontSize < MIN_FONT_SIZE) currentFontSize = MIN_FONT_SIZE; // Cap at minimum
-                element.style.fontSize = `${currentFontSize}rem`;
+            // Function to display custom message box
+            function showMessageBox(message) {
+                messageBoxText.textContent = message;
+                messageBoxOverlay.classList.add('visible');
             }
 
-            // Expand loop (if text shrinks then is deleted, it should grow back)
-            // Only attempt to grow if content is smaller than the box allows at currentFontSize
-            // and currentFontSize is less than the max allowed by slider.
-            if (element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth) {
-                while (currentFontSize < parseFloat(fontSizeSlider.value) && currentFontSize < 2.0 && 
-                       element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth) {
-                    let nextFontSize = currentFontSize + 0.05;
-                    if (nextFontSize > parseFloat(fontSizeSlider.value)) nextFontSize = parseFloat(fontSizeSlider.value);
-                    if (nextFontSize > 2.0) nextFontSize = 2.0; // Hard cap maximum
-                    
-                    element.style.fontSize = `${nextFontSize}rem`;
-                    // Check if it still fits after increasing
-                    if (element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth) {
-                        element.style.fontSize = `${currentFontSize}rem`; // Revert if it overflows
-                        break;
+            // Close message box when OK button is clicked
+            messageBoxCloseBtn.addEventListener('click', () => {
+                messageBoxOverlay.classList.remove('visible');
+            });
+
+            // Variable to keep track of the currently focused editable square
+            let focusedSquare = null;
+            // Variable to keep track of the last edited editable square
+            let lastEditedBox = null;
+            // Variable to keep track of the currently dragged marker (for desktop)
+            let draggedMarker = null;
+            // Variable to keep track of the currently selected marker (for mobile tap-to-place)
+            let selectedMarkerForMobile = null;
+
+            const MIN_FONT_SIZE = 0.3; // Absolute minimum font size to prevent illegibility
+
+            // Array to store references to all editable content divs
+            const allEditableDivs = [];
+            // Array to store references to all marker divs
+            const allMarkers = [];
+
+            // Utility to check if currently on mobile layout
+            function isMobileLayout() {
+                // Check if current layout matches the CSS media query for mobile (max-width: 1024px)
+                // This is more reliable than window.innerWidth alone as it aligns with CSS breakpoints
+                return window.matchMedia("(max-width: 1024px)").matches;
+            }
+
+            // Function to adjust font size to fit content within the box
+            function adjustFontSizeToFit(element) {
+                if (!element) return;
+
+                let currentFontSize = parseFloat(fontSizeSlider.value); // Start with slider's max size
+                element.style.fontSize = `${currentFontSize}rem`;
+
+                // Shrink loop
+                while ((element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth) && currentFontSize > MIN_FONT_SIZE) {
+                    currentFontSize -= 0.05; // Decrease by a small step
+                    if (currentFontSize < MIN_FONT_SIZE) currentFontSize = MIN_FONT_SIZE; // Cap at minimum
+                    element.style.fontSize = `${currentFontSize}rem`;
+                }
+
+                // Expand loop (if text shrinks then is deleted, it should grow back)
+                // Only attempt to grow if content is smaller than the box allows at currentFontSize
+                // and currentFontSize is less than the max allowed by slider.
+                if (element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth) {
+                    while (currentFontSize < parseFloat(fontSizeSlider.value) && currentFontSize < 2.0 && 
+                           element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth) {
+                        let nextFontSize = currentFontSize + 0.05;
+                        if (nextFontSize > parseFloat(fontSizeSlider.value)) nextFontSize = parseFloat(fontSizeSlider.value);
+                        if (nextFontSize > 2.0) nextFontSize = 2.0; // Hard cap maximum
+                        
+                        element.style.fontSize = `${nextFontSize}rem`;
+                        // Check if it still fits after increasing
+                        if (element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth) {
+                            element.style.fontSize = `${currentFontSize}rem`; // Revert if it overflows
+                            break;
+                        }
+                        currentFontSize = nextFontSize;
                     }
-                    currentFontSize = nextFontSize;
                 }
             }
-        }
 
-        // --- Persistence Functions ---
-        function saveBingoState() {
-            const state = {
-                texts: allEditableDivs.map(div => ({
-                    index: parseInt(div.parentElement.dataset.index),
-                    content: div.textContent,
-                    fontSize: div.style.fontSize
-                })),
-                markers: allMarkers.filter(marker => marker.classList.contains('on-board')).map(marker => ({
-                    id: marker.id,
-                    squareIndex: parseInt(marker.parentElement.dataset.index)
-                }))
-            };
-            localStorage.setItem('bingoCardState', JSON.stringify(state));
-        }
+            // --- Persistence Functions ---
+            function saveBingoState() {
+                try {
+                    const state = {
+                        texts: allEditableDivs.map(div => ({
+                            index: parseInt(div.parentElement.dataset.index),
+                            content: div.textContent,
+                            fontSize: div.style.fontSize
+                        })),
+                        markers: allMarkers.filter(marker => marker.classList.contains('on-board')).map(marker => ({
+                            id: marker.id,
+                            squareIndex: parseInt(marker.parentElement.dataset.index)
+                        }))
+                    };
+                    localStorage.setItem('bingoCardState', JSON.stringify(state));
+                } catch (e) {
+                    console.error("Error saving to localStorage:", e);
+                    // showMessageBox("Could not save changes (storage error)."); // Optional: notify user
+                }
+            }
 
-        function loadBingoState() {
-            const savedState = localStorage.getItem('bingoCardState');
-            if (savedState) {
-                const state = JSON.parse(savedState);
+            function loadBingoState() {
+                try {
+                    const savedState = localStorage.getItem('bingoCardState');
+                    if (savedState) {
+                        const state = JSON.parse(savedState);
 
-                // Load text and font sizes
-                state.texts.forEach(item => {
-                    const editableDiv = allEditableDivs.find(div => parseInt(div.parentElement.dataset.index) === item.index);
-                    if (editableDiv) {
-                        editableDiv.textContent = item.content;
-                        editableDiv.style.fontSize = item.fontSize;
-                        adjustFontSizeToFit(editableDiv); // Re-adjust in case of content changes or resize
+                        // Load text and font sizes
+                        state.texts.forEach(item => {
+                            const editableDiv = allEditableDivs.find(div => parseInt(div.parentElement.dataset.index) === item.index);
+                            if (editableDiv) {
+                                editableDiv.textContent = item.content;
+                                editableDiv.style.fontSize = item.fontSize;
+                                adjustFontSizeToFit(editableDiv); // Re-adjust in case of content changes or resize
+                            }
+                        });
+
+                        // Clear all markers from board and move to markerArea first
+                        allMarkers.forEach(marker => {
+                            if (marker.classList.contains('on-board')) {
+                                const parentSquare = marker.parentElement;
+                                if (parentSquare) {
+                                    parentSquare.classList.remove('marked');
+                                    const editableDiv = parentSquare.querySelector('.bingo-editable-content');
+                                    if (editableDiv) {
+                                        editableDiv.contentEditable = true; // Ensure editable
+                                        editableDiv.style.pointerEvents = 'auto'; // Ensure pointer events are auto
+                                    }
+                                }
+                                markerArea.appendChild(marker);
+                                marker.classList.remove('on-board');
+                                marker.style.position = ''; 
+                                marker.style.left = '';
+                                marker.style.top = '';
+                                marker.style.transform = '';
+                            }
+                        });
+
+                        // Place markers back on board based on saved state
+                        state.markers.forEach(item => {
+                            const marker = document.getElementById(item.id);
+                            const targetSquare = bingoGridOverlay.querySelector(`.bingo-square[data-index="${item.squareIndex}"]`);
+                            if (marker && targetSquare && !targetSquare.classList.contains('marked')) {
+                                const editableDiv = targetSquare.querySelector('.bingo-editable-content');
+                                
+                                targetSquare.appendChild(marker); // Append marker to the square
+                                marker.classList.add('on-board');
+                                targetSquare.classList.add('marked');
+                                
+                                if (editableDiv) {
+                                    editableDiv.contentEditable = false; // Disable text editing when marker is on top
+                                    editableDiv.style.pointerEvents = 'none'; // Prevent interaction with text
+                                }
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error loading from localStorage:", e);
+                    // showMessageBox("Could not load saved data (storage error)."); // Optional: notify user
+                }
+            }
+
+            // --- Main Bingo Card Setup ---
+            bingoSquaresData.forEach((content, index) => {
+                const squareDiv = document.createElement('div');
+                squareDiv.classList.add('bingo-square');
+                squareDiv.dataset.index = index; 
+
+                const editableDiv = document.createElement('div');
+                editableDiv.classList.add('bingo-editable-content');
+                editableDiv.contentEditable = true; // Initially editable
+                editableDiv.textContent = content;
+                editableDiv.style.fontSize = `${parseFloat(fontSizeSlider.value)}rem`; 
+                allEditableDivs.push(editableDiv); // Store reference
+
+                editableDiv.addEventListener('focus', () => {
+                    focusedSquare = editableDiv;
+                    lastEditedBox = editableDiv;
+                    fontSizeSlider.value = parseFloat(editableDiv.style.fontSize);
+                });
+
+                editableDiv.addEventListener('blur', (event) => {
+                    if (focusedSquare === editableDiv && event.relatedTarget !== fontSizeSlider) {
+                        focusedSquare = null;
                     }
                 });
 
-                // Clear all markers from board and move to markerArea first
+                editableDiv.addEventListener('input', () => {
+                    lastEditedBox = editableDiv;
+                    adjustFontSizeToFit(editableDiv);
+                    fontSizeSlider.value = parseFloat(editableDiv.style.fontSize);
+                    saveBingoState(); // Still save state silently
+                });
+
+                squareDiv.appendChild(editableDiv);
+                bingoGridOverlay.appendChild(squareDiv);
+
+                adjustFontSizeToFit(editableDiv); // Initial adjust
+
+                // Mobile: Tap to place marker
+                squareDiv.addEventListener('click', (event) => {
+                    if (isMobileLayout()) {
+                        if (selectedMarkerForMobile) {
+                            event.preventDefault(); // Prevent text editing if a marker is being placed
+                            handleMobileMarkerPlacement(selectedMarkerForMobile, squareDiv);
+                        } else if (squareDiv.classList.contains('marked')) {
+                            // If square is marked, tapping it should remove the marker
+                            const markerOnSquare = squareDiv.querySelector('.bingo-marker.on-board');
+                            if (markerOnSquare) {
+                                handleMobileMarkerRemoval(markerOnSquare); // Call removal function directly
+                            }
+                        } else {
+                            // If no marker is selected and square is not marked, allow text editing
+                            editableDiv.focus();
+                        }
+                    } else { // Desktop layout
+                        // Ensure desktop squares are editable if not marked by a marker
+                        if (!squareDiv.classList.contains('marked')) {
+                            editableDiv.focus();
+                        }
+                    }
+                });
+            });
+
+            // --- Slider and Control Button Event Listeners ---
+            fontSizeSlider.addEventListener('input', () => {
+                updateMaxFontSizeAndAdjust();
+                saveBingoState(); // Still save state silently after font size adjustment
+            });
+
+            saveChangesBtn.addEventListener('click', () => {
+                saveBingoState();
+                showMessageBox('Changes Saved!'); // Only show message when button is clicked
+            });
+
+            clearBoardBtn.addEventListener('click', () => {
+                allEditableDivs.forEach((div, index) => {
+                    if (index !== 12) { // Don't clear free space text if it was originally there
+                        div.textContent = '';
+                        adjustFontSizeToFit(div);
+                    }
+                });
+                saveBingoState(); 
+                showMessageBox('Bingo Board Cleared!');
+            });
+
+            clearMarkersBtn.addEventListener('click', () => {
                 allMarkers.forEach(marker => {
                     if (marker.classList.contains('on-board')) {
                         const parentSquare = marker.parentElement;
@@ -486,8 +625,8 @@
                             parentSquare.classList.remove('marked');
                             const editableDiv = parentSquare.querySelector('.bingo-editable-content');
                             if (editableDiv) {
-                                editableDiv.contentEditable = true; // Ensure editable
-                                editableDiv.style.pointerEvents = 'auto'; // Ensure pointer events are auto
+                                editableDiv.contentEditable = true; // Re-enable text editing
+                                editableDiv.style.pointerEvents = 'auto'; // Re-enable pointer events for text
                             }
                         }
                         markerArea.appendChild(marker);
@@ -498,312 +637,198 @@
                         marker.style.transform = '';
                     }
                 });
+                saveBingoState(); 
+                showMessageBox('Markers Cleared!');
+                if (selectedMarkerForMobile) { // Also clear mobile selection
+                    selectedMarkerForMobile.classList.remove('selected-for-placement');
+                    selectedMarkerForMobile = null;
+                }
+            });
 
-                // Place markers back on board based on saved state
-                state.markers.forEach(item => {
-                    const marker = document.getElementById(item.id);
-                    const targetSquare = bingoGridOverlay.querySelector(`.bingo-square[data-index="${item.squareIndex}"]`);
-                    if (marker && targetSquare && !targetSquare.classList.contains('marked')) {
-                        const editableDiv = targetSquare.querySelector('.bingo-editable-content');
-                        
-                        targetSquare.appendChild(marker); // Append marker to the square
-                        marker.classList.add('on-board');
-                        targetSquare.classList.add('marked');
-                        
-                        if (editableDiv) {
-                            editableDiv.contentEditable = false; // Disable text editing when marker is on top
-                            editableDiv.style.pointerEvents = 'none'; // Prevent interaction with text
+
+            // --- Marker Generation and Drag/Drop Setup ---
+            for (let i = 0; i < 25; i++) {
+                const marker = document.createElement('div');
+                marker.classList.add('bingo-marker');
+                marker.id = `marker-${i}`;
+                marker.draggable = true;
+                marker.textContent = ''; // Explicitly ensure no text content in the marker div
+                allMarkers.push(marker); // Store reference
+
+                // Mobile: Tap to select marker
+                marker.addEventListener('click', (event) => {
+                    if (isMobileLayout()) {
+                        event.stopPropagation(); // Prevent square click if marker is clicked
+                        if (marker.classList.contains('on-board')) {
+                            // If marker is on board, tap to remove
+                            handleMobileMarkerRemoval(marker);
+                        } else {
+                            // If marker in area, tap to select
+                            if (selectedMarkerForMobile) {
+                                selectedMarkerForMobile.classList.remove('selected-for-placement'); // Deselect previous
+                            }
+                            selectedMarkerForMobile = marker;
+                            marker.classList.add('selected-for-placement'); // Select current
                         }
                     }
                 });
-            }
-        }
-
-        // --- Main Bingo Card Setup ---
-        bingoSquaresData.forEach((content, index) => {
-            const squareDiv = document.createElement('div');
-            squareDiv.classList.add('bingo-square');
-            squareDiv.dataset.index = index; 
-
-            const editableDiv = document.createElement('div');
-            editableDiv.classList.add('bingo-editable-content');
-            editableDiv.contentEditable = true; // Initially editable
-            editableDiv.textContent = content;
-            editableDiv.style.fontSize = `${parseFloat(fontSizeSlider.value)}rem`; 
-            allEditableDivs.push(editableDiv); // Store reference
-
-            editableDiv.addEventListener('focus', () => {
-                focusedSquare = editableDiv;
-                lastEditedBox = editableDiv;
-                fontSizeSlider.value = parseFloat(editableDiv.style.fontSize);
-            });
-
-            editableDiv.addEventListener('blur', (event) => {
-                if (focusedSquare === editableDiv && event.relatedTarget !== fontSizeSlider) {
-                    focusedSquare = null;
-                }
-            });
-
-            editableDiv.addEventListener('input', () => {
-                lastEditedBox = editableDiv;
-                adjustFontSizeToFit(editableDiv);
-                fontSizeSlider.value = parseFloat(editableDiv.style.fontSize);
-                saveBingoState(); // Still save state silently
-            });
-
-            squareDiv.appendChild(editableDiv);
-            bingoGridOverlay.appendChild(squareDiv);
-
-            adjustFontSizeToFit(editableDiv); // Initial adjust
-
-            // Mobile: Tap to place marker
-            squareDiv.addEventListener('click', (event) => {
-                if (isMobileLayout()) {
-                    if (selectedMarkerForMobile) {
-                        event.preventDefault(); // Prevent text editing if a marker is being placed
-                        handleMobileMarkerPlacement(selectedMarkerForMobile, squareDiv);
-                    } else if (squareDiv.classList.contains('marked')) {
-                        // If square is marked, tapping it should remove the marker
-                        const markerOnSquare = squareDiv.querySelector('.bingo-marker.on-board');
-                        if (markerOnSquare) {
-                            markerOnSquare.click(); // Trigger the marker's own click handler to remove it
-                        }
-                    }
-                }
-            });
-        });
-
-        // --- Slider and Control Button Event Listeners ---
-        fontSizeSlider.addEventListener('input', () => {
-            updateMaxFontSizeAndAdjust();
-            saveBingoState(); // Still save state silently after font size adjustment
-        });
-
-        saveChangesBtn.addEventListener('click', () => {
-            saveBingoState();
-            showMessageBox('Changes Saved!'); // Only show message when button is clicked
-        });
-
-        clearBoardBtn.addEventListener('click', () => {
-            allEditableDivs.forEach((div, index) => {
-                if (index !== 12) { // Don't clear free space text if it was originally there
-                    div.textContent = '';
-                    adjustFontSizeToFit(div);
-                }
-            });
-            saveBingoState(); 
-            showMessageBox('Bingo Board Cleared!');
-        });
-
-        clearMarkersBtn.addEventListener('click', () => {
-            allMarkers.forEach(marker => {
-                if (marker.classList.contains('on-board')) {
-                    const parentSquare = marker.parentElement;
-                    if (parentSquare) {
-                        parentSquare.classList.remove('marked');
-                        const editableDiv = parentSquare.querySelector('.bingo-editable-content');
-                        if (editableDiv) {
-                            editableDiv.contentEditable = true; // Re-enable text editing
-                            editableDiv.style.pointerEvents = 'auto'; // Re-enable pointer events for text
-                        }
-                    }
-                    markerArea.appendChild(marker);
-                    marker.classList.remove('on-board');
-                    marker.style.position = ''; 
-                    marker.style.left = '';
-                    marker.style.top = '';
-                    marker.style.transform = '';
-                }
-            });
-            saveBingoState(); 
-            showMessageBox('Markers Cleared!');
-            if (selectedMarkerForMobile) { // Also clear mobile selection
-                selectedMarkerForMobile.classList.remove('selected-for-placement');
-                selectedMarkerForMobile = null;
-            }
-        });
 
 
-        // --- Marker Generation and Drag/Drop Setup ---
-        for (let i = 0; i < 25; i++) {
-            const marker = document.createElement('div');
-            marker.classList.add('bingo-marker');
-            marker.id = `marker-${i}`;
-            marker.draggable = true;
-            marker.textContent = ''; // Explicitly ensure no text content in the marker div
-            allMarkers.push(marker); // Store reference
-
-            // Mobile: Tap to select marker
-            marker.addEventListener('click', (event) => {
-                if (isMobileLayout()) {
-                    event.stopPropagation(); // Prevent square click if marker is clicked
-                    if (marker.classList.contains('on-board')) {
-                        // If marker is on board, tap to remove
-                        handleMobileMarkerRemoval(marker);
+                // Desktop: Drag and Drop (only enabled on larger screens)
+                marker.addEventListener('dragstart', (event) => {
+                    if (!isMobileLayout()) {
+                        draggedMarker = marker;
+                        event.dataTransfer.setData('text/plain', marker.id);
+                        setTimeout(() => {
+                            // Temporarily hide the original element that's being dragged
+                            // This creates a cleaner drag visual.
+                            marker.classList.add('dragging'); 
+                        }, 0);
                     } else {
-                        // If marker in area, tap to select
-                        if (selectedMarkerForMobile) {
-                            selectedMarkerForMobile.classList.remove('selected-for-placement'); // Deselect previous
+                        event.preventDefault(); // Prevent native drag on mobile if tap handling it
+                    }
+                });
+
+                marker.addEventListener('dragend', () => {
+                    if (!isMobileLayout()) {
+                        if (draggedMarker && draggedMarker.classList.contains('dragging')) {
+                            draggedMarker.classList.remove('dragging');
                         }
-                        selectedMarkerForMobile = marker;
-                        marker.classList.add('selected-for-placement'); // Select current
+                        draggedMarker = null;
+                        saveBingoState();
+                    }
+                });
+
+                markerArea.appendChild(marker);
+            }
+
+            // Global drop handler for desktop (must be outside the loop)
+            document.addEventListener('drop', (event) => {
+                if (!isMobileLayout()) {
+                    const droppedOnSquare = event.target.closest('.bingo-square');
+                    if (draggedMarker) {
+                        handleDesktopMarkerDrop(event, droppedOnSquare);
                     }
                 }
             });
 
-
-            // Desktop: Drag and Drop (only enabled on larger screens)
-            marker.addEventListener('dragstart', (event) => {
+            document.addEventListener('dragover', (event) => {
                 if (!isMobileLayout()) {
-                    draggedMarker = marker;
-                    event.dataTransfer.setData('text/plain', marker.id);
-                    setTimeout(() => {
-                        marker.classList.add('dragging'); 
-                    }, 0);
-                } else {
-                    event.preventDefault(); // Prevent native drag on mobile if tap handling it
+                    event.preventDefault();
                 }
             });
 
-            marker.addEventListener('dragend', () => {
-                if (!isMobileLayout()) {
-                    if (draggedMarker && draggedMarker.classList.contains('dragging')) {
-                        draggedMarker.classList.remove('dragging');
-                    }
-                    draggedMarker = null;
-                    saveBingoState();
-                }
-            });
-
-            markerArea.appendChild(marker);
-        }
-
-        // Global drop handler for desktop (must be outside the loop)
-        document.addEventListener('drop', (event) => {
-            if (!isMobileLayout()) {
-                const droppedOnSquare = event.target.closest('.bingo-square');
-                if (draggedMarker) {
-                    handleDesktopMarkerDrop(event, droppedOnSquare);
-                }
-            }
-        });
-
-        document.addEventListener('dragover', (event) => {
-            if (!isMobileLayout()) {
-                event.preventDefault();
-            }
-        });
-
-        // Helper functions for mobile marker logic
-        function handleMobileMarkerPlacement(markerToPlace, targetSquare) {
-            if (markerToPlace && targetSquare && !targetSquare.classList.contains('marked')) {
-                const editableDiv = targetSquare.querySelector('.bingo-editable-content');
-
-                // Clear existing marker on target square if any (shouldn't be due to !marked)
-                const existingMarkerOnTarget = targetSquare.querySelector('.bingo-marker.on-board');
-                if (existingMarkerOnTarget && existingMarkerOnTarget !== markerToPlace) {
-                     handleMobileMarkerRemoval(existingMarkerOnTarget); // Remove old one
-                }
-
-                targetSquare.appendChild(markerToPlace);
-                markerToPlace.classList.add('on-board');
-                targetSquare.classList.add('marked');
-
-                if (editableDiv) {
-                    editableDiv.contentEditable = false;
-                    editableDiv.style.pointerEvents = 'none';
-                }
-                markerToPlace.classList.remove('selected-for-placement'); // Remove selection visual
-                selectedMarkerForMobile = null; // Clear selected marker
-                saveBingoState();
-            } else if (markerToPlace) { // Square is already marked, or invalid target for placement
-                markerToPlace.classList.remove('selected-for-placement'); // Deselect
-                selectedMarkerForMobile = null; // Clear selection
-            }
-        }
-
-        function handleMobileMarkerRemoval(markerToRemove) {
-            const parentSquare = markerToRemove.parentElement;
-            if (parentSquare) {
-                parentSquare.classList.remove('marked');
-                const editableDiv = parentSquare.querySelector('.bingo-editable-content');
-                if (editableDiv) {
-                    editableDiv.contentEditable = true;
-                    editableDiv.style.pointerEvents = 'auto';
-                }
-            }
-            markerArea.appendChild(markerToRemove);
-            markerToRemove.classList.remove('on-board');
-            markerToRemove.style.position = ''; // Clear inline styles
-            markerToRemove.style.left = '';
-            markerToRemove.style.top = '';
-            markerToRemove.style.transform = '';
-            saveBingoState();
-        }
-
-        // Helper for desktop marker drop logic
-        function handleDesktopMarkerDrop(event, targetSquare) {
-            const markerId = event.dataTransfer.getData('text/plain');
-            const marker = document.getElementById(markerId);
-
-            if (marker) { // Check if a marker was actually being dragged
-                if (!targetSquare) { // Dropped outside a valid square
-                    markerArea.appendChild(marker); // Return to marker area
-                    marker.classList.remove('on-board'); // Ensure it's not marked as on-board
-                    marker.style.position = ''; // Clear inline styles
-                    marker.style.left = '';
-                    marker.style.top = '';
-                    marker.style.transform = '';
-                } else if (!targetSquare.classList.contains('marked')) { // Dropped on an unmarked square
+            // Helper functions for mobile marker logic
+            function handleMobileMarkerPlacement(markerToPlace, targetSquare) {
+                if (markerToPlace && targetSquare && !targetSquare.classList.contains('marked')) {
                     const editableDiv = targetSquare.querySelector('.bingo-editable-content');
 
+                    // Clear existing marker on target square if any (shouldn't be due to !marked)
                     const existingMarkerOnTarget = targetSquare.querySelector('.bingo-marker.on-board');
-                    if (existingMarkerOnTarget && existingMarkerOnTarget !== marker) {
-                        existingMarkerOnTarget.classList.remove('on-board');
-                        markerArea.appendChild(existingMarkerOnTarget);
-                        const oldEditableDiv = existingMarkerOnTarget.parentElement.querySelector('.bingo-editable-content');
-                        if (oldEditableDiv) {
-                            oldEditableDiv.contentEditable = true;
-                            oldEditableDiv.style.pointerEvents = 'auto';
-                        }
-                        existingMarkerOnTarget.parentElement.classList.remove('marked');
+                    if (existingMarkerOnTarget && existingMarkerOnTarget !== markerToPlace) {
+                         handleMobileMarkerRemoval(existingMarkerOnTarget); // Remove old one
                     }
 
-                    targetSquare.appendChild(marker);
-                    marker.classList.add('on-board');
+                    targetSquare.appendChild(markerToPlace);
+                    markerToPlace.classList.add('on-board');
                     targetSquare.classList.add('marked');
 
                     if (editableDiv) {
                         editableDiv.contentEditable = false;
                         editableDiv.style.pointerEvents = 'none';
                     }
-                } else { // Dropped on an already marked square
-                    markerArea.appendChild(marker); // Return dragged marker to marker area
-                    marker.classList.remove('on-board'); // Ensure it's not on-board
-                    marker.style.position = ''; // Clear inline styles
-                    marker.style.left = '';
-                    marker.style.top = '';
-                    marker.style.transform = '';
+                    markerToPlace.classList.remove('selected-for-placement'); // Remove selection visual
+                    selectedMarkerForMobile = null; // Clear selected marker
+                    saveBingoState();
+                } else if (markerToPlace) { // Square is already marked, or invalid target for placement
+                    markerToPlace.classList.remove('selected-for-placement'); // Deselect
+                    selectedMarkerForMobile = null; // Clear selection
                 }
-                marker.classList.remove('dragging'); // Always remove dragging class after drop attempt
-                draggedMarker = null; // Clear dragged marker reference
+            }
+
+            function handleMobileMarkerRemoval(markerToRemove) {
+                const parentSquare = markerToRemove.parentElement;
+                if (parentSquare) {
+                    parentSquare.classList.remove('marked');
+                    const editableDiv = parentSquare.querySelector('.bingo-editable-content');
+                    if (editableDiv) {
+                        editableDiv.contentEditable = true;
+                        editableDiv.style.pointerEvents = 'auto';
+                    }
+                }
+                markerArea.appendChild(markerToRemove);
+                markerToRemove.classList.remove('on-board');
+                markerToRemove.style.position = ''; // Clear inline styles
+                markerToRemove.style.left = '';
+                markerToRemove.style.top = '';
+                markerToRemove.style.transform = '';
                 saveBingoState();
             }
-        }
 
-        // Initial load of bingo state when everything is set up
-        loadBingoState(); 
+            // Helper for desktop marker drop logic
+            function handleDesktopMarkerDrop(event, targetSquare) {
+                const markerId = event.dataTransfer.getData('text/plain');
+                const marker = document.getElementById(markerId);
 
-        // Function to update font size based on slider (now sets max allowed font size)
-        function updateMaxFontSizeAndAdjust() {
-            const maxFontSize = parseFloat(fontSizeSlider.value); 
+                if (marker) { // Check if a marker was actually being dragged
+                    if (!targetSquare) { // Dropped outside a valid square
+                        markerArea.appendChild(marker); // Return to marker area
+                        marker.classList.remove('on-board'); // Ensure it's not marked as on-board
+                        marker.style.position = ''; // Clear inline styles
+                        marker.style.left = '';
+                        marker.style.top = '';
+                        marker.style.transform = '';
+                    } else if (!targetSquare.classList.contains('marked')) { // Dropped on an unmarked square
+                        const editableDiv = targetSquare.querySelector('.bingo-editable-content');
 
-            if (focusedSquare) {
-                adjustFontSizeToFit(focusedSquare);
-            } else if (lastEditedBox) {
-                adjustFontSizeToFit(lastEditedBox);
+                        const existingMarkerOnTarget = targetSquare.querySelector('.bingo-marker.on-board');
+                        if (existingMarkerOnTarget && existingMarkerOnTarget !== marker) {
+                            existingMarkerOnTarget.classList.remove('on-board');
+                            markerArea.appendChild(existingMarkerOnTarget);
+                            const oldEditableDiv = existingMarkerOnTarget.parentElement.querySelector('.bingo-editable-content');
+                            if (oldEditableDiv) {
+                                oldEditableDiv.contentEditable = true;
+                                oldEditableDiv.style.pointerEvents = 'auto';
+                            }
+                            existingMarkerOnTarget.parentElement.classList.remove('marked');
+                        }
+
+                        targetSquare.appendChild(marker);
+                        marker.classList.add('on-board');
+                        targetSquare.classList.add('marked');
+
+                        if (editableDiv) {
+                            editableDiv.contentEditable = false;
+                            editableDiv.style.pointerEvents = 'none';
+                        }
+                    } else { // Dropped on an already marked square
+                        markerArea.appendChild(marker); // Return dragged marker to marker area
+                        marker.classList.remove('on-board'); // Ensure it's not on-board
+                        marker.style.position = ''; // Clear inline styles
+                        marker.style.left = '';
+                        marker.style.top = '';
+                        marker.style.transform = '';
+                    }
+                    marker.classList.remove('dragging'); // Always remove dragging class after drop attempt
+                    draggedMarker = null; // Clear dragged marker reference
+                    saveBingoState();
+                }
             }
-        }
+
+            // Initial load of bingo state when everything is set up
+            loadBingoState(); 
+
+            // Function to update font size based on slider (now sets max allowed font size)
+            function updateMaxFontSizeAndAdjust() {
+                const maxFontSize = parseFloat(fontSizeSlider.value); 
+
+                if (focusedSquare) {
+                    adjustFontSizeToFit(focusedSquare);
+                } else if (lastEditedBox) {
+                    adjustFontSizeToFit(lastEditedBox);
+                }
+            }
+        }); /* End of DOMContentLoaded listener */
     </script>
 </body>
 </html>
