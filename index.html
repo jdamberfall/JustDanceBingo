@@ -164,7 +164,8 @@
             outline: none; 
             padding: 0.25rem; 
             /* font-size will be set dynamically by JS */
-            word-break: break-word; 
+            word-break: normal; /* Changed to normal to prevent arbitrary word splitting */
+            overflow-wrap: break-word; /* Ensure very long words still break if necessary */
             display: flex; 
             align-items: center;
             justify-content: center;
