@@ -169,8 +169,9 @@
             /* Reinstated flex properties with column direction for centering and stacking */
             display: flex;
             flex-direction: column; /* Ensure lines stack vertically */
-            align-items: center; /* Vertically center content within this flex container */
-            justify-content: center; /* Horizontally center content within this flex container */
+            align-items: center; /* Horizontally center content within this flex container */
+            justify-content: center; /* Vertically center content within this flex container */
+            text-align: center; /* Ensure each line of text is also centered */
 
             white-space: pre-wrap; /* Preserve whitespace and handle newlines from enter key */
             border-radius: 0.375rem;
@@ -540,8 +541,8 @@
                                 targetSquare.classList.add('marked');
 
                                 if (editableDiv) {
-                                    editableDiv.contentEditable = false; // Disable text editing when marker is on top
-                                    editableDiv.style.pointerEvents = 'none'; // Prevent interaction with text
+                                    editableDiv.contentEditable = false;
+                                    editableDiv.style.pointerEvents = 'none';
                                 }
                             }
                         });
@@ -777,7 +778,7 @@
                 }
                 markerArea.appendChild(markerToRemove);
                 markerToRemove.classList.remove('on-board');
-                markerToRemove.style.position = ''; // Clear inline styles
+                markerToRemove.style.position = '';
                 markerToRemove.style.left = '';
                 markerToRemove.style.top = '';
                 markerToRemove.style.transform = '';
