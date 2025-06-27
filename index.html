@@ -18,7 +18,8 @@
             min-height: 100vh; /* Full viewport height */
             margin: 0;
             padding: 1rem; /* Base padding */
-            padding-bottom: 5rem; /* Space for fixed bottom slider */
+            /* Adjusted padding-bottom to account for fixed bottom bar height */
+            padding-bottom: 120px; /* Adjusted to make space for the combined slider+footer fixed bar */
             padding-right: 180px; /* Space for fixed right marker area */
             box-sizing: border-box; /* Include padding in element's total width and height */
             user-select: none; /* Prevent accidental text selection for better interaction */
@@ -36,12 +37,15 @@
             border-radius: 0; /* No rounded corners for fixed bar */
             box-shadow: 0 -5px 15px -3px rgba(0, 0, 0, 0.3); /* Shadow on top */
             z-index: 100; /* Ensure it's on top */
+            /* Changed to column to stack its children vertically */
             display: flex;
-            flex-direction: row; /* Label and slider side-by-side */
+            flex-direction: column; 
             justify-content: center; /* Center content within the bar */
             align-items: center;
-            gap: 1rem; /* Space between label and slider */
+            gap: 0.5rem; /* Space between elements inside the bar */
             flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            height: auto; /* Allow height to adjust to content */
+            min-height: 80px; /* Ensure minimum height for controls + footer */
         }
 
         .slider-label {
@@ -249,11 +253,14 @@
                 flex-direction: column; /* Stack elements vertically */
                 padding-right: 1rem; /* Reset right padding */
                 padding-top: 5rem; /* Space for fixed top marker area */
-                padding-bottom: 5rem; /* Space for fixed bottom slider */
+                /* Adjust padding-bottom for mobile footer visibility */
+                padding-bottom: 120px; /* Consistent with desktop fixed bar height */
             }
 
             .slider-container {
                 /* Already fixed bottom, responsive by default for width */
+                height: auto; /* Allow height to adjust */
+                min-height: 80px; /* Ensure sufficient height for controls + footer */
             }
 
             .marker-area-container {
@@ -337,6 +344,10 @@
         <button id="saveChangesBtn" class="control-button">Save Changes</button>
         <button id="clearBoardBtn" class="control-button">Clear Bingo Board</button>
         <button id="clearMarkersBtn" class="control-button">Clear Markers</button>
+        <!-- Moved footer inside the slider-container -->
+        <footer style="color: #e2e8f0; text-align: center; font-size: 0.9rem; padding-top: 0.5rem; width: 100%;">
+            Made by Amberfall
+        </footer>
     </div>
 
     <div class="bingo-card-container" id="bingoCardContainer">
@@ -832,7 +843,4 @@
         }); /* End of DOMContentLoaded listener */
     </script>
 </body>
-<footer style="color: #e2e8f0; text-align: center; margin-top: 2rem; font-size: 0.9rem; padding-bottom: 1rem; width: 100%;">
-    Made by Amberfall
-</footer>
 </html>
