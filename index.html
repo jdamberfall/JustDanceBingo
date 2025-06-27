@@ -18,12 +18,11 @@
             min-height: 100vh; /* Full viewport height */
             margin: 0;
             padding: 1rem; /* Base padding */
-            /* Adjusted padding-bottom to account for fixed bottom bar height */
-            padding-bottom: 120px; /* Adjusted to make space for the combined slider+footer fixed bar */
-            padding-right: 180px; /* Space for fixed right marker area */
+            /* padding-bottom and padding-right/top will be set dynamically by JS based on slider-container and marker-area heights */
             box-sizing: border-box; /* Include padding in element's total width and height */
             user-select: none; /* Prevent accidental text selection for better interaction */
             position: relative; /* For z-index context */
+            transition: padding-bottom 0.3s ease, padding-right 0.3s ease, padding-top 0.3s ease; /* Smooth transition for body padding */
         }
 
         /* Slider container styling - Fixed to bottom */
@@ -32,12 +31,11 @@
             bottom: 0;
             left: 0;
             width: 100%; /* Full width */
-            padding: 0.75rem 1rem; /* Adjusted padding */
+            padding: 0.5rem 1rem; /* Adjusted padding */
             background-color: #2d3748; /* Darker background */
             border-radius: 0; /* No rounded corners for fixed bar */
             box-shadow: 0 -5px 15px -3px rgba(0, 0, 0, 0.3); /* Shadow on top */
             z-index: 100; /* Ensure it's on top */
-            /* Changed to column to stack its children vertically */
             display: flex;
             flex-direction: column;
             justify-content: center; /* Center content within the bar */
@@ -45,7 +43,20 @@
             gap: 0.5rem; /* Space between elements inside the bar */
             flex-wrap: wrap; /* Allow wrapping on smaller screens */
             height: auto; /* Allow height to adjust to content */
-            min-height: 80px; /* Ensure minimum height for controls + footer */
+            min-height: 70px; /* Ensure minimum height for controls + footer */
+            transition: min-height 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for collapse */
+        }
+
+        /* Collapsed state for the slider container */
+        .slider-container.slider-collapsed {
+            min-height: 40px; /* Height for just the footer and toggle button */
+            padding: 0.25rem 1rem; /* Smaller padding when collapsed */
+            box-shadow: 0 -5px 15px -3px rgba(0, 0, 0, 0); /* Remove shadow when collapsed */
+        }
+
+        /* Class to hide the controls wrapper */
+        .controls-wrapper.controls-hidden {
+            display: none;
         }
 
         .slider-label {
@@ -61,7 +72,7 @@
             appearance: none;
             width: 60%; /* Adjusted width for fixed bar */
             max-width: 400px; /* Limit slider width */
-            height: 0.5rem; /* Height of the slider track */
+            height: 0.1rem; /* Height of the slider track */
             background: #4a5568; /* Darker track color */
             outline: none; /* Remove outline */
             opacity: 0.7; /* Opacity for styling */
@@ -107,6 +118,23 @@
         .control-button:active {
             transform: translateY(1px);
         }
+
+        /* Toggle button for controls */
+        #toggleControlsBtn {
+            background-color: #4a5568; /* Darker gray to distinguish */
+            color: #e2e8f0;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem; /* Space from other elements above */
+            border-radius: 0.375rem;
+            align-self: flex-end; /* Align to right within its flex container */
+            margin-left: auto; /* Push to the right */
+            margin-right: 0; /* Ensure no extra margin */
+        }
+        #toggleControlsBtn:hover {
+            background-color: #3b4455;
+        }
+
 
         /* Main container for the bingo card, handles responsiveness and aspect ratio */
         .bingo-card-container {
@@ -207,8 +235,17 @@
             flex-direction: column; /* Markers stacked vertically */
             gap: 0.5rem; /* Space between markers */
             align-items: center;
-            overflow-y: auto; /* Allow vertical scrolling if many markers */
-            justify-content: flex-start; /* Align content to the top */
+            overflow-y: auto;
+            justify-content: flex-start;
+            /* Smooth transition for width and padding */
+            transition: width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .marker-area-container.marker-area-collapsed {
+            width: 0; /* Collapse width to 0 */
+            padding: 0; /* Remove padding */
+            box-shadow: none; /* Remove shadow */
+            overflow: hidden; /* Hide content */
         }
 
         /* Styles for individual bingo markers */
@@ -218,7 +255,7 @@
             background-color: rgba(255, 0, 0, 0.3); /* Semi-transparent red */
             border-radius: 50%;
             cursor: grab;
-            transition: background-color 0.2s ease, transform 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.1s ease; /* Added transform transition for responsiveness */
             position: relative; /* Default position */
             flex-shrink: 0; /* Prevent shrinking in marker area */
             /* No text content should be present in this div */
@@ -258,15 +295,13 @@
             body {
                 flex-direction: column; /* Stack elements vertically */
                 padding-right: 1rem; /* Reset right padding */
-                padding-top: 5rem; /* Space for fixed top marker area */
-                /* Adjust padding-bottom for mobile footer visibility */
-                padding-bottom: 120px; /* Consistent with desktop fixed bar height */
+                /* padding-top and padding-bottom will be set dynamically by JS */
             }
 
             .slider-container {
                 /* Already fixed bottom, responsive by default for width */
                 height: auto; /* Allow height to adjust */
-                min-height: 80px; /* Ensure sufficient height for controls + footer */
+                min-height: 70px; /* Ensure sufficient height for controls + footer */
             }
 
             .marker-area-container {
@@ -276,15 +311,21 @@
                 right: 0; /* Extend full width */
                 height: 60px; /* Fixed height for top bar */
                 width: 100%; /* Take full width */
+                padding: 1rem; /* Default padding */
                 flex-direction: row; /* Markers aligned horizontally at top */
                 justify-content: center; /* Center markers horizontally */
                 align-items: center;
-                overflow-x: auto; /* Allow horizontal scrolling if too many markers */
+                overflow-x: auto;
                 overflow-y: hidden; /* Hide vertical scroll for horizontal layout */
                 max-height: unset; /* Remove max-height for top bar */
-                box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.3); /* Shadow on bottom */
-                border-radius: 0;
-                z-index: 95; /* Above bingo card, below slider */
+                box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.3);
+                transition: height 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for height and padding */
+            }
+            .marker-area-container.marker-area-collapsed {
+                height: 0; /* Collapse height to 0 */
+                padding: 0; /* Remove padding */
+                box-shadow: none; /* Remove shadow */
+                overflow: hidden; /* Hide content */
             }
             .marker-area-container .slider-label {
                 display: none; /* Hide 'Markers' label when horizontal at top */
@@ -343,14 +384,17 @@
 </head>
 <body>
     <!-- Font size slider control -->
-    <div class="slider-container">
-        <label for="fontSizeSlider" class="slider-label">Adjust Font Size</label>
-        <input type="range" id="fontSizeSlider" class="font-size-slider" min="0.3" max="2.0" step="0.1" value="0.8">
-        <!-- Buttons wrapper -->
-        <div style="display: flex; flex-direction: row; justify-content: center; gap: 0.5rem; flex-wrap: wrap; width: 100%; margin-top: 0.5rem;">
-            <button id="saveChangesBtn" class="control-button">Save Changes</button>
-            <button id="clearBoardBtn" class="control-button">Clear Bingo Board</button>
-            <button id="clearMarkersBtn" class="control-button">Clear Markers</button>
+    <div class="slider-container" id="sliderContainer">
+        <button id="toggleControlsBtn" class="control-button">Toggle Controls</button>
+        <div id="controlsWrapper" class="controls-wrapper">
+            <label for="fontSizeSlider" class="slider-label">Adjust Font Size</label>
+            <input type="range" id="fontSizeSlider" class="font-size-slider" min="0.3" max="2.0" step="0.1" value="0.8">
+            <!-- Buttons wrapper -->
+            <div style="display: flex; flex-direction: row; justify-content: center; gap: 0.5rem; flex-wrap: wrap; width: 100%; margin-top: 0.5rem;">
+                <button id="saveChangesBtn" class="control-button">Save Changes</button>
+                <button id="clearBoardBtn" class="control-button">Clear Bingo Board</button>
+                <button id="clearMarkersBtn" class="control-button">Clear Markers</button>
+            </div>
         </div>
         <!-- Moved footer inside the slider-container -->
         <footer style="color: #e2e8f0; text-align: center; font-size: 0.9rem; padding-top: 0.5rem; width: 100%;">
@@ -401,6 +445,12 @@
             const messageBoxOverlay = document.getElementById('messageBoxOverlay');
             const messageBoxText = document.getElementById('messageBoxText');
             const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
+
+            // Bottom bar collapse elements
+            const sliderContainer = document.getElementById('sliderContainer');
+            const toggleControlsBtn = document.getElementById('toggleControlsBtn');
+            const controlsWrapper = document.getElementById('controlsWrapper');
+
 
             // Function to display custom message box
             function showMessageBox(message) {
@@ -483,7 +533,9 @@
                         markers: allMarkers.filter(marker => marker.classList.contains('on-board')).map(marker => ({
                             id: marker.id,
                             squareIndex: parseInt(marker.parentElement.dataset.index)
-                        }))
+                        })),
+                        isControlsCollapsed: sliderContainer.classList.contains('slider-collapsed'), // Save bottom bar collapse state
+                        isMarkersCollapsed: markerArea.classList.contains('marker-area-collapsed') // Save marker area collapse state
                     };
                     localStorage.setItem('bingoCardState', JSON.stringify(state));
                 } catch (e) {
@@ -546,6 +598,24 @@
                                 }
                             }
                         });
+
+                        // Load collapse state for bottom controls
+                        if (state.isControlsCollapsed) {
+                            sliderContainer.classList.add('slider-collapsed');
+                            controlsWrapper.classList.add('controls-hidden');
+                        } else {
+                            sliderContainer.classList.remove('slider-collapsed');
+                            controlsWrapper.classList.remove('controls-hidden');
+                        }
+
+                        // Load collapse state for marker area
+                        if (state.isMarkersCollapsed) {
+                            markerArea.classList.add('marker-area-collapsed');
+                        } else {
+                            markerArea.classList.remove('marker-area-collapsed');
+                        }
+
+                        updateBodyPaddings(); // Ensure body padding is correct after loading state
                     }
                 } catch (e) {
                     console.error("Error loading from localStorage:", e);
@@ -663,6 +733,15 @@
                     selectedMarkerForMobile.classList.remove('selected-for-placement');
                     selectedMarkerForMobile = null;
                 }
+            });
+
+            // --- Toggle Controls Logic ---
+            toggleControlsBtn.addEventListener('click', () => {
+                sliderContainer.classList.toggle('slider-collapsed');
+                controlsWrapper.classList.toggle('controls-hidden');
+                markerArea.classList.toggle('marker-area-collapsed'); // Toggle marker area collapse
+                updateBodyPaddings(); // Update body padding after toggle
+                saveBingoState(); // Save the new collapsed state
             });
 
 
@@ -835,8 +914,32 @@
                 }
             }
 
+            // Function to update body padding based on slider container's current height and marker area width/height
+            function updateBodyPaddings() {
+                const sliderHeight = sliderContainer.getBoundingClientRect().height;
+                const buffer = 10; // Small buffer for consistent spacing
+
+                document.body.style.paddingBottom = `${sliderHeight + buffer}px`;
+
+                if (!isMobileLayout()) {
+                    // Desktop: markers on right, collapses horizontally
+                    const markerWidth = markerArea.classList.contains('marker-area-collapsed') ? 0 : 150; // Use static width for padding calculation
+                    document.body.style.paddingRight = `${markerWidth + buffer}px`;
+                    document.body.style.paddingTop = `1rem`; // Reset top padding for desktop
+                } else {
+                    // Mobile: markers on top, collapses vertically
+                    const markerHeight = markerArea.classList.contains('marker-area-collapsed') ? 0 : 60; // Use static height for padding calculation
+                    document.body.style.paddingTop = `${markerHeight + buffer}px`;
+                    document.body.style.paddingRight = `1rem`; // Reset right padding for mobile
+                }
+            }
+
             // Initial load of bingo state when everything is set up
             loadBingoState();
+            // Call once initially and on window resize to ensure correct padding
+            updateBodyPaddings();
+            window.addEventListener('resize', updateBodyPaddings);
+
 
             // Function to update font size based on slider (now sets max allowed font size)
             function updateMaxFontSizeAndAdjust() {
